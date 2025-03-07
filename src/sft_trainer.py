@@ -39,6 +39,9 @@ class ScriptArguments:
     dataset_name: Optional[str] = field(
         default="", metadata={"help": "the dataset name"}
     )
+    eval_dataset_name: Optional[str] = field(
+        default="", metadata={"help": "the eval dataset name"}
+    )
     dataset_text_field: Optional[str] = field(default="text", metadata={"help": "the text field of the dataset"})
     log_with: Optional[str] = field(default=None, metadata={"help": "use 'wandb' to log with wandb"})
     learning_rate: Optional[float] = field(default=3e-4, metadata={"help": "the learning rate"})
@@ -102,6 +105,12 @@ try:
     dataset = load_dataset(script_args.dataset_name, split="train")
 except:
     dataset = load_from_disk(script_args.dataset_name)
+
+try:
+    # import pdb; pdb.set_trace()
+    eval_dataset = load_dataset(script_args.eval_dataset_name, split=None)
+except:
+    eval_dataset = load_from_disk(script_args.eval_dataset_name)
 
 # Step 3: Define the training arguments
 # training_args = TrainingArguments(
@@ -168,6 +177,7 @@ trainer = SFTTrainer(
     tokenizer=llama_tokenizer,
     args=config,
     train_dataset=dataset,
+    eval_dataset=eval_dataset,
     peft_config=peft_config,
     # optim="adamw_torch_fused"
 )
