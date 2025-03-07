@@ -8,10 +8,6 @@ from tqdm import tqdm
 with open("WhoQA/WhoQA.json", "r", encoding="utf-8") as file:
     data = json.load(file)
 
-print('len', len(data))
-data = data[:len(data) // 100]
-print('new len', len(data))
-
 # Prepare a list for Hugging Face dataset format
 hf_data_train = []
 hf_data_test = []
@@ -27,12 +23,12 @@ for entry in tqdm(data):
                 for answer in answer_list:
                     for question in question_list:
                         entry_train = {
-                            "question": f'Question: {question}\nContext: {context["candidate_texts"]}\nAnswer: ',
+                            "prompt": f'Question: {question}\nContext: {context["candidate_texts"]}\nAnswer: ',
                             "context": context["candidate_texts"],
                             "answer": answer
                         }
                         entry_test = {
-                            "question": f'Question: {question}\nAnswer: ',
+                            "prompt": f'Question: {question}\nAnswer: ',
                             "context": '',
                             "answer": answer
                         }
@@ -41,11 +37,12 @@ for entry in tqdm(data):
                         hf_data_test.append(entry_test)
 
 # Convert to Pandas DataFrame
-df_train = pd.DataFrame(hf_data_train)
-df_test = pd.DataFrame(hf_data_test)
+samples_with_context = pd.DataFrame(hf_data_train)
+samples_no_context = pd.DataFrame(hf_data_test)
 
 # Split into train (80%) and test (20%) sets
-train_df, _test_df = train_test_split(df_train, test_size=0.4, random_state=42)
+train_df, _ = train_test_split(samples_with_context, test_size=0.4, random_state=42)
+_, _test_df = train_test_split(samples_no_context, test_size=0.4, random_state=42)
 eval_df, test_df = train_test_split(_test_df, test_size=0.5, random_state=42)
 
 # Convert to Hugging Face Datasets

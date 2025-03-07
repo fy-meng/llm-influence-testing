@@ -185,7 +185,7 @@ class IFEngineGeneration(object):
             print("Computing IF for method: ", method_name)
             if_tmp_dict = defaultdict(dict)
             for tr_id in self.tr_grad_dict:
-                for val_id in list(self.val_grad_dict)[:10]:
+                for val_id in self.val_grad_dict:
                     if_tmp_value = 0
                     for weight_name in self.val_grad_dict[0]:
                         if_tmp_value += torch.sum(self.hvp_dict[method_name][val_id][weight_name]*self.tr_grad_dict[tr_id][weight_name])

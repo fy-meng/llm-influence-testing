@@ -1,4 +1,6 @@
 .idea/
 WhoQA/
 datasets/
-
+.ipynb_checkpoints/
+output/
+*.pyc
