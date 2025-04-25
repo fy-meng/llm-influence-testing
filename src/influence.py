@@ -4,6 +4,7 @@ from collections import defaultdict
 import pandas as pd
 import pickle, os
 import torch
+from tqdm import tqdm
 
 class IFEngine(object):
     def __init__(self):
@@ -64,7 +65,8 @@ class IFEngine(object):
     def compute_hvp_accurate(self, lambda_const_param=10):
         start_time = time()
         hvp_accurate_dict={}
-        for weight_name in self.val_grad_avg_dict:
+        print('computing hvp accurate...')
+        for weight_name in tqdm(self.val_grad_avg_dict):
             # lambda_const computation
             S=torch.zeros(len(self.tr_grad_dict.keys()))
             for tr_id in self.tr_grad_dict:
@@ -179,6 +181,35 @@ class IFEngineGeneration(object):
                 hvp_proposed_dict[val_id][weight_name] = hvp
         self.hvp_dict['proposed'] = hvp_proposed_dict
         self.time_dict['proposed'] = time()-start_time
+
+    def compute_hvp_accurate(self, lambda_const_param=10):
+        start_time = time()
+        hvp_accurate_dict={}
+        for weight_name in self.val_grad_avg_dict:
+            # lambda_const computation
+            S=torch.zeros(len(self.tr_grad_dict.keys()))
+            for tr_id in self.tr_grad_dict:
+                tmp_grad = self.tr_grad_dict[tr_id][weight_name]
+                S[tr_id]=torch.mean(tmp_grad**2)
+            lambda_const = torch.mean(S) / lambda_const_param # layer-wise lambda
+
+            # hvp computation (eigenvalue decomposition)
+            AAt_matrix = torch.zeros(torch.outer(self.tr_grad_dict[0][weight_name].reshape(-1), 
+                                                 self.tr_grad_dict[0][weight_name].reshape(-1)).shape)
+            for tr_id in self.tr_grad_dict: 
+                tmp_mat = torch.outer(self.tr_grad_dict[tr_id][weight_name].reshape(-1), 
+                                      self.tr_grad_dict[tr_id][weight_name].reshape(-1))
+                AAt_matrix += tmp_mat
+                
+            L, V = torch.linalg.eig(AAt_matrix)
+            L, V = L.float(), V.float()
+            hvp = self.val_grad_avg_dict[weight_name].reshape(-1) @ V
+            hvp = (hvp / (lambda_const + L/ self.n_train)) @ V.T
+
+            hvp_accurate_dict[weight_name] = hvp.reshape(len(self.tr_grad_dict[0][weight_name]), -1)
+            del tmp_mat, AAt_matrix, V # to save memory
+        self.hvp_dict['accurate'] = hvp_accurate_dict
+        self.time_dict['accurate'] = time()-start_time
 
     def compute_IF(self):
         for method_name in self.hvp_dict:

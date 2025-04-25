@@ -180,7 +180,7 @@ class LORAEngineGeneration(object):
         # self.tokenizer.pad_token = self.tokenizer.eos_token
         # self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
 
-        self.tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B")
+        self.tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B-Instruct")
         self.tokenizer.padding_side = 'right'
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
@@ -204,25 +204,33 @@ class LORAEngineGeneration(object):
 
     def create_tokenized_datasets(self):
         tokenize_func = lambda x: self.tokenizer(
-            x["prompt"], truncation=True, padding=True, max_length=128, return_tensors="pt" # text should be more appropritate
+            x['prompt'], truncation=True, padding=True, max_length=128, return_tensors="pt" # text should be more appropritate
         ).to(self.device)
 
+        remove_col_list = self.train_dataset.column_names
+
+        # ORIGINAL
         # if 'with_reason' in self.dataset_name:
-        #     column_list=["text", "answer", "variation", "prompt", "reason"]
+        #     remove_col_list=["text", "answer", "variation", "prompt", "reason"]
         # else:
-        #     column_list=["text", "answer", "variation", "prompt"]
-        column_list = ['prompt', 'context', 'answer']
+        #     remove_col_list=["text", "answer", "variation", "prompt"]
+
+        # FOR WHOQA
+        # remove_col_list = ['prompt', 'context', 'answer']
+
+        # FOR WIKIQA
+        # remove_col_list = ['prompt', 'answer']
 
         tokenized_datasets=dict()
         tokenized_datasets["train"] = self.train_dataset.map(
             tokenize_func,
             batched=True,
-            remove_columns=column_list,
+            remove_columns=remove_col_list,
         )
         tokenized_datasets["validation"] = self.validation_dataset.map(
             tokenize_func,
             batched=True,
-            remove_columns=column_list,
+            remove_columns=remove_col_list,
         )
         collate_fn = lambda x: self.tokenizer.pad(x, padding="longest", return_tensors="pt")
 

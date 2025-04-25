@@ -2,5 +2,6 @@
 WhoQA/
 datasets/
 .ipynb_checkpoints/
-output/
+output/*/*.pkl
+!output/*/if*.pkl
 *.pyc

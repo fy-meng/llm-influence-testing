@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name=train
+#SBATCH --job-name=influence-train
 #SBATCH --nodes=1
-#SBATCH --gpus-per-node=1
+#SBATCH --gpus-per-node=2
 
 python src/sft_trainer.py \
     --model_name meta-llama/Llama-3.2-1B \
