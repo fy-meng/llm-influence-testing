@@ -13,22 +13,22 @@ warnings.filterwarnings("ignore")
 # Please change the following objects to  "YOUR-LLAMA-PATH" and "YOUR-DATAINF-PATH"
 project_path = "/mnt/share/fymeng/llm-influence-testing"
 base_path = f"{project_path}/models/llama-wikiqa-lora"
-dataset_name = 'wikiqa_question_cf_strong'
+dataset_name = 'wikiqa_answer_cf_strong'
 output_dir = f'{project_path}/output/{dataset_name}'
 lora_engine = LORAEngineGeneration(base_path=base_path,
                                    project_path=project_path,
                                    dataset_name=dataset_name)
 
 # limit train and test samples size
-np.random.seed(42)
-
-train_size = 100
-train_idx = np.random.choice(np.arange(len(lora_engine.train_dataset)), train_size, replace=False)
-lora_engine.train_dataset = lora_engine.train_dataset.select(train_idx)
-
-test_size = 100
-test_idx = np.random.choice(np.arange(len(lora_engine.validation_dataset)), test_size, replace=False)
-lora_engine.validation_dataset = lora_engine.validation_dataset.select(test_idx)
+# np.random.seed(42)
+#
+# train_size = 100
+# train_idx = np.random.choice(np.arange(len(lora_engine.train_dataset)), train_size, replace=False)
+# lora_engine.train_dataset = lora_engine.train_dataset.select(train_idx)
+#
+# test_size = 100
+# test_idx = np.random.choice(np.arange(len(lora_engine.validation_dataset)), test_size, replace=False)
+# lora_engine.validation_dataset = lora_engine.validation_dataset.select(test_idx)
 
 torch.backends.cuda.enable_mem_efficient_sdp(False)
 torch.backends.cuda.enable_flash_sdp(False)

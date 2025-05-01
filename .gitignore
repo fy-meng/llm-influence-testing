@@ -1,6 +1,7 @@
 .idea/
 WhoQA/
-datasets/
+datasets/*
+!datasets/*cf*/
 .ipynb_checkpoints/
 output/*/*.pkl
 !output/*/if*.pkl
